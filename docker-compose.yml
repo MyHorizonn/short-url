@@ -1,0 +1,14 @@
+web:
+    build: .
+    tty: true
+    working_dir: /short-url
+    ports:
+     - "9000:9000"
+    volumes:
+     - .:/short-url
+    links:
+     - db
+db:
+    image: redis:alpine
+    ports:
+     - "6379:6379"
