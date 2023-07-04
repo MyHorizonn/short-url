@@ -3,13 +3,11 @@ package main
 import (
 	"database/sql"
 	"log"
-	"math/rand"
 	"os"
-	"short-url/internal/server"
+	"short-url/internal/handler"
 	"short-url/internal/storage/urls"
 	"short-url/internal/storage/urls/postgres"
 	"short-url/internal/storage/urls/redisdb"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -37,6 +35,5 @@ func main() {
 			DB:       0,
 		})}
 	}
-	rand.Seed(time.Now().UnixNano())
-	server.StartServer(db)
+	handler.StartServer(db)
 }
