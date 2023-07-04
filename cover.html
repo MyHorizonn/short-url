@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>shorturl: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">short-url/cmd/shorturl/shorturl.go (0.0%)</option>
+				
+				<option value="file1">short-url/internal/encdec/encdec.go (94.7%)</option>
+				
+				<option value="file2">short-url/internal/handler/create_url/create.go (64.5%)</option>
+				
+				<option value="file3">short-url/internal/handler/get_url/get.go (67.9%)</option>
+				
+				<option value="file4">short-url/internal/handler/handlers.go (0.0%)</option>
+				
+				<option value="file5">short-url/internal/storage/urls/postgres/postgres.go (0.0%)</option>
+				
+				<option value="file6">short-url/internal/storage/urls/redisdb/redisdb.go (0.0%)</option>
+				
+				<option value="file7">short-url/internal/storage/urls/testdb/testdb.go (66.7%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "database/sql"
+        "log"
+        "os"
+        "short-url/internal/handler"
+        "short-url/internal/storage/urls"
+        "short-url/internal/storage/urls/postgres"
+        "short-url/internal/storage/urls/redisdb"
+
+        "github.com/redis/go-redis/v9"
+)
+
+func main() <span class="cov0" title="0">{
+        var choose_db string
+        if len(os.Args) &gt; 1 </span><span class="cov0" title="0">{
+                choose_db = os.Args[1]
+        }</span>
+        <span class="cov0" title="0">var db urls.Storage
+        switch choose_db </span>{
+        case "postgres":<span class="cov0" title="0">
+                connStr := "host=localhost port=5432 user=postgres password=1234 dbname=shorturl sslmode=disable"
+                dbOp, err := sql.Open("postgres", connStr)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalln(err)
+                }</span>
+                <span class="cov0" title="0">dbOp.SetMaxOpenConns(10)
+                db = &amp;postgres.Postgres{Client: dbOp}</span>
+        default:<span class="cov0" title="0">
+                db = &amp;redisdb.Redis{Client: redis.NewClient(&amp;redis.Options{
+                        Addr:     "localhost:6379",
+                        Password: "",
+                        DB:       0,
+                })}</span>
+        }
+        <span class="cov0" title="0">handler.StartServer(db)</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package encdec
+
+import (
+        "hash/fnv"
+        "math"
+        "strings"
+)
+
+const (
+        chars  = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789_"
+        length = len(chars)
+)
+
+func Encode(url string) (string, uint64) <span class="cov1" title="1">{
+        var encodedBuilder strings.Builder
+        encodedBuilder.Grow(10)
+        h := fnv.New64a()
+        h.Write([]byte(url))
+        number := h.Sum64()
+        var key uint64
+        for ; number &gt; 0; number = number / uint64(length) </span><span class="cov8" title="11">{
+                if len(encodedBuilder.String()) == 10 </span><span class="cov1" title="1">{
+                        break</span>
+                }
+                <span class="cov7" title="10">encodedBuilder.WriteByte(chars[(number % uint64(length))])</span>
+        }
+
+        <span class="cov1" title="1">key = Decode(encodedBuilder.String())
+
+        return encodedBuilder.String(), key</span>
+}
+
+func Decode(encoded string) uint64 <span class="cov3" title="2">{
+        var number uint64
+
+        for i, symbol := range encoded </span><span class="cov10" title="20">{
+                alphabeticPosition := strings.IndexRune(chars, symbol)
+
+                if alphabeticPosition == -1 </span><span class="cov0" title="0">{
+                        return uint64(alphabeticPosition)
+                }</span>
+                <span class="cov10" title="20">number += uint64(alphabeticPosition) * uint64(math.Pow(float64(length), float64(i)))</span>
+        }
+
+        <span class="cov3" title="2">return number</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package create_handler
+
+import (
+        "encoding/json"
+        "fmt"
+        "log"
+        "net/http"
+        "short-url/internal/encdec"
+        handler_types "short-url/internal/handler/types"
+        "short-url/internal/storage/urls"
+)
+
+func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) <span class="cov10" title="3">{
+        switch r.Method </span>{
+        case "POST":<span class="cov6" title="2">
+                var req handler_types.Req
+                err := json.NewDecoder(r.Body).Decode(&amp;req)
+                if err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, fmt.Sprintf("error reading request body, %v", err), http.StatusBadRequest)
+                        return
+                }</span>
+                <span class="cov6" title="2">fmt.Println(req == (handler_types.Req{}))
+                if req == (handler_types.Req{}) </span><span class="cov1" title="1">{
+                        http.Error(w, fmt.Sprint("error empty data"), http.StatusBadRequest)
+                        return
+                }</span>
+                <span class="cov1" title="1">var shortUrl string
+                var key uint64
+                shortUrl, key = encdec.Encode(req.Url)
+                exists, exErr := db.IsExists(key)
+                if exErr != nil </span><span class="cov0" title="0">{
+                        http.Error(w, fmt.Sprintf("error reading db row, %v", exErr), http.StatusBadRequest)
+                        return
+                }</span>
+                <span class="cov1" title="1">if !exists </span><span class="cov0" title="0">{
+                        url := urls.Url{OriginalUrl: req.Url, ShortUrl: shortUrl, Key: key}
+                        createErr := db.Create(url)
+                        if createErr != nil </span><span class="cov0" title="0">{
+                                log.Fatalln(err)
+                                http.Error(w, fmt.Sprintf("error creating db row, %v", createErr), http.StatusInternalServerError)
+                                return
+                        }</span>
+                }
+                <span class="cov1" title="1">w.WriteHeader(http.StatusCreated)
+                w.Header().Set("Content-Type", "application/json")
+                response := handler_types.Resp{Url: shortUrl}
+                jsonErr := json.NewEncoder(w).Encode(response)
+                if jsonErr != nil </span><span class="cov0" title="0">{
+                        http.Error(w, fmt.Sprintf("error %v", jsonErr), http.StatusInternalServerError)
+                }</span>
+        default:<span class="cov1" title="1">
+                http.Error(w, fmt.Sprintf("method %s is not allowed", r.Method), http.StatusMethodNotAllowed)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package get_handler
+
+import (
+        "encoding/json"
+        "fmt"
+        "net/http"
+        "short-url/internal/encdec"
+        handler_types "short-url/internal/handler/types"
+        "short-url/internal/storage/urls"
+)
+
+func GetOriginalURL(w http.ResponseWriter, r *http.Request, db urls.Storage) <span class="cov10" title="3">{
+        switch r.Method </span>{
+        case "GET":<span class="cov6" title="2">
+                var req handler_types.Req
+                err := json.NewDecoder(r.Body).Decode(&amp;req)
+                if err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, fmt.Sprintf("error reading request body, %v", err), http.StatusBadRequest)
+                        return
+                }</span>
+
+                <span class="cov6" title="2">if req == (handler_types.Req{}) </span><span class="cov1" title="1">{
+                        http.Error(w, fmt.Sprint("error empty data"), http.StatusBadRequest)
+                        return
+                }</span>
+
+                <span class="cov1" title="1">res := encdec.Decode(req.Url)
+                exists, exErr := db.IsExists(res)
+                if exErr != nil </span><span class="cov0" title="0">{
+                        http.Error(w, fmt.Sprintf("error reading db row, %v", exErr), http.StatusBadRequest)
+                        return
+                }</span>
+                <span class="cov1" title="1">if exists </span><span class="cov1" title="1">{
+                        origUrl, getErr := db.Get(res)
+                        if getErr != nil </span><span class="cov0" title="0">{
+                                http.Error(w, fmt.Sprintf("error reading db row, %v", getErr), http.StatusBadRequest)
+                        }</span>
+                        <span class="cov1" title="1">w.WriteHeader(http.StatusOK)
+                        w.Header().Set("Content-Type", "application/json")
+                        response := handler_types.Resp{Url: origUrl}
+                        jsonErr := json.NewEncoder(w).Encode(response)
+                        if jsonErr != nil </span><span class="cov0" title="0">{
+                                http.Error(w, fmt.Sprintf("error %v", jsonErr), http.StatusInternalServerError)
+                                return
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        http.Error(w, fmt.Sprintf("error row does not exist"), http.StatusBadRequest)
+                        return
+                }</span>
+        default:<span class="cov1" title="1">
+                http.Error(w, fmt.Sprintf("method %s is not allowed", r.Method), http.StatusMethodNotAllowed)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package handler
+
+import (
+        "log"
+        "net/http"
+        create_url_handler "short-url/internal/handler/create_url"
+        get_url_handler "short-url/internal/handler/get_url"
+        "short-url/internal/storage/urls"
+)
+
+func StartServer(db urls.Storage) <span class="cov0" title="0">{
+        http.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                create_url_handler.CreateShortURL(w, r, db)
+        }</span>)
+        <span class="cov0" title="0">http.HandleFunc("/get_original", func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                get_url_handler.GetOriginalURL(w, r, db)
+        }</span>)
+
+        <span class="cov0" title="0">log.Fatalln(http.ListenAndServe(":9000", nil))</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package postgres
+
+import (
+        "database/sql"
+        "short-url/internal/storage/urls"
+
+        _ "github.com/lib/pq"
+)
+
+type Postgres struct {
+        Client *sql.DB
+}
+
+func (p *Postgres) Create(url urls.Url) error <span class="cov0" title="0">{
+        _, err := p.Client.Exec("INSERT INTO urls(original, short, key) Values($1, $2, $3)", url.OriginalUrl, url.ShortUrl, url.Key)
+        return err
+}</span>
+
+func (p *Postgres) Get(key uint64) (string, error) <span class="cov0" title="0">{
+        var url string = ""
+        err := p.Client.QueryRow("select original from urls where key = $1", key).Scan(&amp;url)
+        if err != nil || url == "" </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">return url, nil</span>
+}
+
+func (p *Postgres) IsExists(key uint64) (bool, error) <span class="cov0" title="0">{
+        res, err := p.Client.Exec("select * from urls where key = $1", key)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, nil
+        }</span>
+        <span class="cov0" title="0">n, err := res.RowsAffected()
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov0" title="0">return n &gt; 0, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package redisdb
+
+import (
+        "context"
+        "short-url/internal/storage/urls"
+        "strconv"
+        "time"
+
+        "github.com/redis/go-redis/v9"
+)
+
+type Redis struct {
+        Client *redis.Client
+}
+
+func (r *Redis) Create(url urls.Url) error <span class="cov0" title="0">{
+        ctx := context.Background()
+        err := r.Client.Set(ctx, strconv.FormatUint(url.Key, 10), url.OriginalUrl, time.Duration(time.Hour*24*7)).Err()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (r *Redis) Get(key uint64) (string, error) <span class="cov0" title="0">{
+        ctx := context.Background()
+        val, err := r.Client.Get(ctx, strconv.FormatUint(key, 10)).Result()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">return val, nil</span>
+}
+
+func (r *Redis) IsExists(key uint64) (bool, error) <span class="cov0" title="0">{
+        ctx := context.Background()
+        _, err := r.Client.Get(ctx, strconv.FormatUint(key, 10)).Result()
+        if err == redis.Nil </span><span class="cov0" title="0">{
+                return false, nil
+        }</span> else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov0" title="0">return true, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package testdb
+
+import "short-url/internal/storage/urls"
+
+type TestDb struct {
+}
+
+func (r *TestDb) Create(url urls.Url) error <span class="cov0" title="0">{
+        return nil
+}</span>
+
+func (r *TestDb) Get(key uint64) (string, error) <span class="cov1" title="1">{
+        return "github.com/myhorizonn/short-url", nil
+}</span>
+
+func (r *TestDb) IsExists(key uint64) (bool, error) <span class="cov10" title="2">{
+        return true, nil
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

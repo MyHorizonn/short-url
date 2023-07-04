@@ -1,4 +1,4 @@
-package create_handler
+package get_handler
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestCreateShortUrl(t *testing.T) {
+func TestGetOriginalUrl(t *testing.T) {
 
 	// orig: github.com/myhorizonn/short-url
 	// short: jO0j5jyCyj
@@ -29,19 +29,19 @@ func TestCreateShortUrl(t *testing.T) {
 		},
 		{
 			name:      "ok",
-			jsonStr:   []byte(`{"url": "github.com/myhorizonn/short-url"}`),
-			expStatus: http.StatusCreated,
+			jsonStr:   []byte(`{"url": "jO0j5jyCyj"}`),
+			expStatus: http.StatusOK,
 		},
 	}
 
 	var emptyDb urls.Storage
 	emptyDb = &testdb.TestDb{}
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		CreateShortURL(w, r, emptyDb)
+		GetOriginalURL(w, r, emptyDb)
 	})
 
-	var jsonStr = []byte(`{"url": "github.com/myhorizonn/short-url"}`)
-	req, err := http.NewRequest("GET", "/create", bytes.NewBuffer(jsonStr))
+	var jsonStr = []byte(`{"url": "jO0j5jyCyj"}`)
+	req, err := http.NewRequest("POST", "/create", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		t.Fatal(err.Error())
@@ -54,7 +54,7 @@ func TestCreateShortUrl(t *testing.T) {
 	}
 
 	for _, tCase := range cases {
-		req, err := http.NewRequest("POST", "/create", bytes.NewBuffer(tCase.jsonStr))
+		req, err := http.NewRequest("GET", "/get_original", bytes.NewBuffer(tCase.jsonStr))
 		req.Header.Set("Content-Type", "application/json")
 		if err != nil {
 			t.Fatal(err.Error())
@@ -65,5 +65,4 @@ func TestCreateShortUrl(t *testing.T) {
 			t.Fatalf("\nTest: %s, expected %d got %d", tCase.name, tCase.expStatus, status)
 		}
 	}
-
 }

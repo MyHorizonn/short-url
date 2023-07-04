@@ -24,7 +24,6 @@ func main() {
 		dbOp, err := sql.Open("postgres", connStr)
 		if err != nil {
 			log.Fatalln(err)
-			return
 		}
 		dbOp.SetMaxOpenConns(10)
 		db = &postgres.Postgres{Client: dbOp}

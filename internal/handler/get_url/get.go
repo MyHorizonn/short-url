@@ -15,7 +15,12 @@ func GetOriginalURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 		var req handler_types.Req
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("error reading request body, %v", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("error reading request body, %v", err), http.StatusBadRequest)
+			return
+		}
+
+		if req == (handler_types.Req{}) {
+			http.Error(w, fmt.Sprint("error empty data"), http.StatusBadRequest)
 			return
 		}
 
