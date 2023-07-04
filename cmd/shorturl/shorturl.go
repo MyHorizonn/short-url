@@ -28,6 +28,7 @@ func main() {
 			log.Fatalln(err)
 			return
 		}
+		dbOp.SetMaxOpenConns(10)
 		db = &postgres.Postgres{Client: dbOp}
 	default:
 		db = &redisdb.Redis{Client: redis.NewClient(&redis.Options{
