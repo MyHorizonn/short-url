@@ -3,7 +3,6 @@ package get_handler
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"short-url/internal/encdec"
 	handler_types "short-url/internal/handler/types"
@@ -17,12 +16,14 @@ func GetOriginalURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("error reading request body, %v", err), http.StatusInternalServerError)
+			return
 		}
 
 		res := encdec.Decode(req.Url)
 		exists, exErr := db.IsExists(res)
 		if exErr != nil {
 			http.Error(w, fmt.Sprintf("error reading db row, %v", exErr), http.StatusBadRequest)
+			return
 		}
 		if exists {
 			origUrl, getErr := db.Get(res)
@@ -34,10 +35,12 @@ func GetOriginalURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 			response := handler_types.Resp{Url: origUrl}
 			jsonErr := json.NewEncoder(w).Encode(response)
 			if jsonErr != nil {
-				log.Fatalf(jsonErr.Error())
+				http.Error(w, fmt.Sprintf("error %v", jsonErr), http.StatusInternalServerError)
+				return
 			}
 		} else {
 			http.Error(w, fmt.Sprintf("error row does not exist"), http.StatusBadRequest)
+			return
 		}
 	default:
 		http.Error(w, fmt.Sprintf("method %s is not allowed", r.Method), http.StatusMethodNotAllowed)

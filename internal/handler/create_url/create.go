@@ -17,6 +17,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("error reading request body, %v", err), http.StatusInternalServerError)
+			return
 		}
 		var shortUrl string
 		var key uint64
@@ -24,6 +25,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 		exists, exErr := db.IsExists(key)
 		if exErr != nil {
 			http.Error(w, fmt.Sprintf("error reading db row, %v", exErr), http.StatusBadRequest)
+			return
 		}
 		if !exists {
 			url := urls.Url{OriginalUrl: req.Url, ShortUrl: shortUrl, Key: key}
@@ -31,6 +33,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 			if createErr != nil {
 				log.Fatalln(err)
 				http.Error(w, fmt.Sprintf("error creating db row, %v", createErr), http.StatusInternalServerError)
+				return
 			}
 		}
 		w.WriteHeader(http.StatusCreated)
@@ -38,7 +41,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 		response := handler_types.Resp{Url: shortUrl}
 		jsonErr := json.NewEncoder(w).Encode(response)
 		if jsonErr != nil {
-			log.Fatalf(jsonErr.Error())
+			http.Error(w, fmt.Sprintf("error %v", jsonErr), http.StatusInternalServerError)
 		}
 	default:
 		http.Error(w, fmt.Sprintf("method %s is not allowed", r.Method), http.StatusMethodNotAllowed)
