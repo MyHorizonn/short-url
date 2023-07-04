@@ -8,4 +8,4 @@ RUN go install -v ./...
 RUN go build ./cmd/shorturl
 EXPOSE 9000
 CMD [ "ls" ]
-ENTRYPOINT [ "./shorturl.exe" ]
+ENTRYPOINT [ "shorturl" ]
