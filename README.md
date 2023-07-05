@@ -2,7 +2,7 @@
 
 ### Start app
 ##### Specify which database will be used
-##### Redis will be used by default
+##### If not specified Redis will be used by default
 ```
 sudo docker compose build --build-args DB="postgres" && sudo docker compose up
 ```
