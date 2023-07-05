@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
-	"short-url/internal/storage/urls"
 	"short-url/internal/storage/urls/testdb"
 	"testing"
 )
@@ -34,8 +33,7 @@ func TestCreateShortUrl(t *testing.T) {
 		},
 	}
 
-	var emptyDb urls.Storage
-	emptyDb = &testdb.TestDb{}
+	emptyDb := &testdb.TestDb{}
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		CreateShortURL(w, r, emptyDb)
 	})
