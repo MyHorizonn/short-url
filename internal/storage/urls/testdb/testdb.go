@@ -16,3 +16,7 @@ func (r *TestDb) Get(key uint64) (string, error) {
 func (r *TestDb) IsExists(key uint64) (bool, error) {
 	return true, nil
 }
+
+func (r *TestDb) DelExpire() error {
+	return nil
+}
