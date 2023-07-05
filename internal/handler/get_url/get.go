@@ -44,7 +44,7 @@ func GetOriginalURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 				return
 			}
 		} else {
-			http.Error(w, fmt.Sprintf("error row does not exist"), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("error url does not exist"), http.StatusBadRequest)
 			return
 		}
 	default:

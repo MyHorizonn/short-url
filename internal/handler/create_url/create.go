@@ -3,7 +3,6 @@ package create_handler
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"short-url/internal/encdec"
 	handler_types "short-url/internal/handler/types"
@@ -19,9 +18,8 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 			http.Error(w, fmt.Sprintf("error reading request body, %v", err), http.StatusBadRequest)
 			return
 		}
-		fmt.Println(req == (handler_types.Req{}))
 		if req == (handler_types.Req{}) {
-			http.Error(w, fmt.Sprint("error empty data"), http.StatusBadRequest)
+			http.Error(w, "error empty data", http.StatusBadRequest)
 			return
 		}
 		var shortUrl string
@@ -29,15 +27,14 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 		shortUrl, key = encdec.Encode(req.Url)
 		exists, exErr := db.IsExists(key)
 		if exErr != nil {
-			http.Error(w, fmt.Sprintf("error reading db row, %v", exErr), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("error reading data, %v", exErr), http.StatusBadRequest)
 			return
 		}
 		if !exists {
 			url := urls.Url{OriginalUrl: req.Url, ShortUrl: shortUrl, Key: key}
 			createErr := db.Create(url)
 			if createErr != nil {
-				log.Fatalln(err)
-				http.Error(w, fmt.Sprintf("error creating db row, %v", createErr), http.StatusInternalServerError)
+				http.Error(w, fmt.Sprintf("error creating, %v", createErr), http.StatusInternalServerError)
 				return
 			}
 		}
