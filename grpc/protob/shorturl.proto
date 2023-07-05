@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package api.v1;
+
+option go_package = "short-url/grpc/protob";
+
+service ShortUrler{
+    rpc GetShortUrl (GetShortUrlRequest) returns (GetShortUrlResponse);
+    rpc GetOriginalUrl (GetOriginalUrlRequest) returns (GetOriginalUrlResponse);
+}
+
+message GetShortUrlRequest {
+    string origUrl = 1;
+}
+
+message GetShortUrlResponse {
+    string shortUrl = 1;
+}
+
+message GetOriginalUrlRequest {
+    string origUrl = 1;
+}
+
+message GetOriginalUrlResponse {
+    string shortUrl = 1;
+}
