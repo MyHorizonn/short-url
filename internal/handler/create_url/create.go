@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"short-url/internal/encdec"
 	handler_types "short-url/internal/handler/types"
 	"short-url/internal/storage/urls"
+	"strconv"
+	"time"
 )
 
 func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
@@ -31,7 +34,13 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 			return
 		}
 		if !exists {
-			url := urls.Url{OriginalUrl: req.Url, ShortUrl: shortUrl, Key: key}
+			expire_days, expireErr := strconv.Atoi(os.Getenv("EXPIRE_DAYS"))
+			if err != nil {
+				http.Error(w, fmt.Sprintf("error creating, %v", expireErr), http.StatusInternalServerError)
+			}
+			time_now := time.Now()
+			time_now.AddDate(0, 0, expire_days)
+			url := urls.Url{OriginalUrl: req.Url, ShortUrl: shortUrl, Key: key, Expire: time_now}
 			createErr := db.Create(url)
 			if createErr != nil {
 				http.Error(w, fmt.Sprintf("error creating, %v", createErr), http.StatusInternalServerError)

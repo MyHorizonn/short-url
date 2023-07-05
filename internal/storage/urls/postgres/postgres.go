@@ -12,7 +12,7 @@ type Postgres struct {
 }
 
 func (p *Postgres) Create(url urls.Url) error {
-	_, err := p.Client.Exec("INSERT INTO urls(original, short, urlkey) Values($1, $2, $3)", url.OriginalUrl, url.ShortUrl, url.Key)
+	_, err := p.Client.Exec("INSERT INTO urls(original, short, urlkey, expire) Values($1, $2, $3, $4)", url.OriginalUrl, url.ShortUrl, url.Key, url.Expire)
 	return err
 }
 
@@ -35,4 +35,12 @@ func (p *Postgres) IsExists(key uint64) (bool, error) {
 		return false, err
 	}
 	return n > 0, nil
+}
+
+func (p *Postgres) DelExpire() error {
+	_, err := p.Client.Exec("delete * from urls where expire < now()")
+	if err != nil {
+		return err
+	}
+	return nil
 }
