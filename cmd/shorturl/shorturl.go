@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"short-url/internal/handler"
@@ -9,6 +10,7 @@ import (
 	"short-url/internal/storage/urls/postgres"
 	"short-url/internal/storage/urls/redisdb"
 
+	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -18,9 +20,13 @@ func main() {
 		choose_db = os.Args[1]
 	}
 	var db urls.Storage
+	err := godotenv.Load("./././.env")
+	if err != nil {
+		log.Fatalln(err)
+	}
 	switch choose_db {
 	case "postgres":
-		connStr := "host=localhost port=5432 user=postgres password=1234 dbname=shorturl sslmode=disable"
+		connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD") ,os.Getenv("DB_NAME"))
 		dbOp, err := sql.Open("postgres", connStr)
 		if err != nil {
 			log.Fatalln(err)
@@ -29,7 +35,7 @@ func main() {
 		db = &postgres.Postgres{Client: dbOp}
 	default:
 		db = &redisdb.Redis{Client: redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
+			Addr:     os.Getenv("REDIS_ADDR"),
 			Password: "",
 			DB:       0,
 		})}

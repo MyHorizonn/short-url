@@ -1,14 +1,33 @@
-web:
-    build: .
-    tty: true
-    working_dir: /short-url
-    ports:
-     - "9000:9000"
-    volumes:
-     - .:/short-url
-    links:
-     - db
-db:
-    image: redis:alpine
-    ports:
-     - "6379:6379"
+version: "3.8"
+
+services:
+    web:
+        build: .
+        env_file:
+        - .env
+        tty: true
+        working_dir: /short-url
+        ports:
+        - "9000:9000"
+        volumes:
+        - .:/short-url
+        links:
+        - redisdb
+        - postgresdb
+    redisdb:
+        image: redis
+        ports:
+        - "6379:6379"
+    postgresdb:
+        image: postgres:15
+        environment:
+        - POSTGRES_USER=${DB_USER}
+        - POSTGRES_PASSWORD=${DB_PASSWORD}
+        - POSTGRES_DB=${DB_NAME}
+        ports:
+        - "5432:5432"
+        volumes:
+        - postgres-db:/var/lib/postgresql/data
+        - ./create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+volumes:
+  postgres-db:

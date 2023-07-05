@@ -12,13 +12,13 @@ type Postgres struct {
 }
 
 func (p *Postgres) Create(url urls.Url) error {
-	_, err := p.Client.Exec("INSERT INTO urls(original, short, key) Values($1, $2, $3)", url.OriginalUrl, url.ShortUrl, url.Key)
+	_, err := p.Client.Exec("INSERT INTO urls(original, short, urlkey) Values($1, $2, $3)", url.OriginalUrl, url.ShortUrl, url.Key)
 	return err
 }
 
 func (p *Postgres) Get(key uint64) (string, error) {
 	var url string = ""
-	err := p.Client.QueryRow("select original from urls where key = $1", key).Scan(&url)
+	err := p.Client.QueryRow("select original from urls where urlkey = $1", key).Scan(&url)
 	if err != nil || url == "" {
 		return "", err
 	}
@@ -26,7 +26,7 @@ func (p *Postgres) Get(key uint64) (string, error) {
 }
 
 func (p *Postgres) IsExists(key uint64) (bool, error) {
-	res, err := p.Client.Exec("select * from urls where key = $1", key)
+	res, err := p.Client.Exec("select * from urls where urlkey = $1", key)
 	if err != nil {
 		return false, nil
 	}
