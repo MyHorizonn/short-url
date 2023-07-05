@@ -34,6 +34,7 @@ func GetOriginalURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 			origUrl, getErr := db.Get(res)
 			if getErr != nil {
 				http.Error(w, fmt.Sprintf("error reading db row, %v", getErr), http.StatusBadRequest)
+				return
 			}
 			w.WriteHeader(http.StatusOK)
 			w.Header().Set("Content-Type", "application/json")

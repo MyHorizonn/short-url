@@ -37,6 +37,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 			expire_days, expireErr := strconv.Atoi(os.Getenv("EXPIRE_DAYS"))
 			if err != nil {
 				http.Error(w, fmt.Sprintf("error creating, %v", expireErr), http.StatusInternalServerError)
+				return
 			}
 			time_now := time.Now()
 			time_now = time_now.AddDate(0, 0, expire_days)
