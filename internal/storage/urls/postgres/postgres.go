@@ -38,7 +38,7 @@ func (p *Postgres) IsExists(key uint64) (bool, error) {
 }
 
 func (p *Postgres) DelExpire() error {
-	_, err := p.Client.Exec("delete * from urls where expire < now()")
+	_, err := p.Client.Exec("delete from urls where expire < now()")
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS urls (
     original varchar(256) NOT NULL,
     short varchar(256) NOT NULL,
     urlkey BIGINT NOT NULL,
+    expire date NOT NULL,
     PRIMARY KEY (id)
 
 );

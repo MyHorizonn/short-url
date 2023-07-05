@@ -37,7 +37,9 @@ func main() {
 		go func() {
 			fmt.Println("Deleting expired urls...")
 			err := db.DelExpire()
-			log.Fatalln(err)
+			if err != nil {
+				log.Fatalln(err)
+			}
 			time.Sleep(time.Duration(time.Hour))
 		}()
 	default:

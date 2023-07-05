@@ -39,7 +39,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request, db urls.Storage) {
 				http.Error(w, fmt.Sprintf("error creating, %v", expireErr), http.StatusInternalServerError)
 			}
 			time_now := time.Now()
-			time_now.AddDate(0, 0, expire_days)
+			time_now = time_now.AddDate(0, 0, expire_days)
 			url := urls.Url{OriginalUrl: req.Url, ShortUrl: shortUrl, Key: key, Expire: time_now}
 			createErr := db.Create(url)
 			if createErr != nil {
